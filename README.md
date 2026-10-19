@@ -128,7 +128,16 @@ docs/
 └── dashboard.png
 ```
 
-Run the scripts in numeric order in a Snowflake worksheet. `00_setup_and_load.sql` needs your own Azure storage account and SAS token, and expects the tables from `01` to exist before the `COPY INTO` step.
+## ▶️ How to run it
+
+Snowflake is a cloud service, so there is nothing to install locally.
+
+1. **Get a Snowflake account.** A free trial works. Open a SQL worksheet and pick a warehouse (`USE WAREHOUSE COMPUTE_WH;`).
+2. **Create the database and staging tables.** Run the database and file-format part of `00_setup_and_load.sql`, then `01_staging_tables.sql`.
+3. **Load the CSVs.** Point the stages in `00_setup_and_load.sql` at your Azure Blob container (account, container, SAS token) and run the `COPY INTO` statements. If you don't use Azure, an internal stage works too: upload the files in the Snowflake UI, as was done here for `Segment.csv`.
+4. **Build the model.** Run `02_dim_date.sql` → `03_dimensions.sql` → `04_facts.sql`. The null-key checks at the end of `04` should all return 0.
+5. **Expose it.** Run `05_secure_views.sql` and `06_analysis_views.sql`.
+6. **Connect Tableau.** Use the Snowflake connector in Tableau and select the `V_*` and analysis views, not the base tables.
 
 ## 🧭 Known limitations
 
