@@ -15,7 +15,7 @@ CREATE OR REPLACE table DIM_DATE (
 	DAY_ABBREV				varchar(3) not null,
 	WEEKDAY_IND				varchar(64) not null,
 	US_HOLIDAY_IND			varchar(64) not null,
-	/*<COMPANYNAME>*/_HOLIDAY_IND varchar(64) not null,
+	COMPANY_HOLIDAY_IND		varchar(64) not null,
 	MONTH_END_IND			varchar(64) not null,
 	WEEK_BEGIN_DATE_NKEY		number(9) not null,
 	WEEK_BEGIN_DATE			date not null,
@@ -396,5 +396,5 @@ select DATE_PKEY,
 			to_date(current_timestamp) as EFFECTIVE_DATE,
 			to_date('9999-12-31') as EXPIRA_DATE
 			--from table(generator(rowcount => 8401)) /*<< Set to generate 20 years. Modify rowcount to increase or decrease size*/
-	        from table(generator(rowcount => 730)) /*<< Set to generate 20 years. Modify rowcount to increase or decrease size*/
+	        from table(generator(rowcount => 730)) /*<< 730 days = 2013-2014, the span of the sales data*/
     )v;
