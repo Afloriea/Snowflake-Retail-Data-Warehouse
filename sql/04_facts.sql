@@ -104,3 +104,89 @@ SELECT
   SUM(CASE WHEN DimTargetDateID IS NULL THEN 1 ELSE 0 END) AS null_target_date_id,
   SUM(CASE WHEN ProductTargetSalesQuantity IS NULL THEN 1 ELSE 0 END) AS null_sales_quantity
 FROM FACT_ProductSalesTarget;
+
+--Insert Data to FACT_SalesActual
+--First, change the date column of the STAGING_SALESHEADER table in order to join correctly with DIM_DATE. For example, year changes from 0013 to 2013
+
+UPDATE STAGING_SALESHEADER
+SET Date = DATEADD(YEAR, 2000, Date)
+WHERE YEAR(Date) IN (13, 14);
+
+--Sanity check
+SELECT DISTINCT YEAR(Date), COUNT(*)
+FROM STAGING_SALESHEADER
+GROUP BY YEAR(Date)
+ORDER BY YEAR(Date);
+
+--Finally, insert data
+TRUNCATE TABLE FACT_SalesActual;
+
+INSERT INTO FACT_SalesActual (
+    DimProductID,
+    DimStoreID,
+    DimResellerID,
+    DimCustomerID,
+    DimChannelID,
+    DimSaleDateID,
+    DimLocationID,
+    SalesHeaderID,
+    SalesDetailID,
+    SaleAmount,
+    SaleQuantity,
+    SaleUnitPrice,
+    SaleExtendedCost,
+    SaleTotalProfit
+)
+SELECT DISTINCT
+    P.DimProductID,
+    COALESCE(S.DimStoreID, -1),
+    COALESCE(R.DimResellerID, -1),
+    COALESCE(CU.DimCustomerID, -1),
+    C.DimChannelID,
+    D.DATE_PKEY AS DimSaleDateID,
+    CASE
+        WHEN S.DimLocationID IS NOT NULL AND S.DimLocationID != -1 THEN S.DimLocationID
+        WHEN CU.DimLocationID IS NOT NULL AND CU.DimLocationID != -1 THEN CU.DimLocationID
+        WHEN R.DimLocationID IS NOT NULL AND R.DimLocationID != -1 THEN R.DimLocationID
+        ELSE -1
+    END AS DimLocationID,
+    SH.SalesHeaderID,
+    SD.SalesDetailID,
+    SD.SalesAmount,
+    SD.SalesQuantity,
+    CASE
+        WHEN COALESCE(R.DimResellerID, -1) = -1 THEN P.ProductRetailPrice
+        ELSE P.ProductWholesalePrice
+    END AS SaleUnitPrice,
+    SD.SalesQuantity * P.ProductCost AS SaleExtendedCost,
+    CASE
+        WHEN COALESCE(R.DimResellerID, -1) = -1 THEN P.ProductRetailProfit
+        ELSE P.ProductWholesaleUnitProfit
+    END * SD.SalesQuantity AS SaleTotalProfit
+FROM STAGING_SALESDETAIL SD
+JOIN STAGING_SALESHEADER SH ON SH.SalesHeaderID = SD.SalesHeaderID
+LEFT JOIN DIM_PRODUCT P ON SD.ProductID = P.ProductID
+LEFT JOIN DIM_STORE S ON COALESCE(SH.StoreID, -1) = S.SourceStoreID
+LEFT JOIN DIM_RESELLER R ON COALESCE(SH.ResellerID, 'Unknown') = R.ResellerID
+LEFT JOIN DIM_CUSTOMER CU ON COALESCE(SH.CustomerID, 'Unknown') = CU.CustomerID
+LEFT JOIN DIM_CHANNEL C ON SH.ChannelID = C.ChannelID
+LEFT JOIN DIM_DATE D ON SH.Date = D.DATE;
+
+--Check for null values
+SELECT
+  COUNT(*) AS total_rows,
+  SUM(CASE WHEN DimProductID IS NULL THEN 1 ELSE 0 END) AS null_product_id,
+  SUM(CASE WHEN DimStoreID IS NULL THEN 1 ELSE 0 END) AS null_store_id,
+  SUM(CASE WHEN DimResellerID IS NULL THEN 1 ELSE 0 END) AS null_reseller_id,
+  SUM(CASE WHEN DimCustomerID IS NULL THEN 1 ELSE 0 END) AS null_customer_id,
+  SUM(CASE WHEN DimChannelID IS NULL THEN 1 ELSE 0 END) AS null_channel_id,
+  SUM(CASE WHEN DimSaleDateID IS NULL THEN 1 ELSE 0 END) AS null_date_id,
+  SUM(CASE WHEN DimLocationID IS NULL THEN 1 ELSE 0 END) AS null_location_id,
+  SUM(CASE WHEN SalesHeaderID IS NULL THEN 1 ELSE 0 END) AS null_salesheader_id,
+  SUM(CASE WHEN SalesDetailID IS NULL THEN 1 ELSE 0 END) AS null_salesdetail_id,
+  SUM(CASE WHEN SaleAmount IS NULL THEN 1 ELSE 0 END) AS null_saleamount,
+  SUM(CASE WHEN SaleQuantity IS NULL THEN 1 ELSE 0 END) AS null_salequantity,
+  SUM(CASE WHEN SaleUnitPrice IS NULL THEN 1 ELSE 0 END) AS null_unitprice,
+  SUM(CASE WHEN SaleExtendedCost IS NULL THEN 1 ELSE 0 END) AS null_extendedcost,
+  SUM(CASE WHEN SaleTotalProfit IS NULL THEN 1 ELSE 0 END) AS null_totalprofit
+FROM FACT_SalesActual;
