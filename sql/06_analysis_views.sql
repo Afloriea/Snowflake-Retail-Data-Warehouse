@@ -31,7 +31,7 @@ LEFT JOIN (
   WHERE D.YEAR = 2013 AND D.MONTH_NUM_IN_YEAR BETWEEN 1 AND 10
   GROUP BY SA.DIMSTOREID
 ) JO ON S.DIMSTOREID = JO.DIMSTOREID
-WHERE S.DIMSTOREID IN (4, 6) AND D.YEAR = 2014
+WHERE S.STORENUMBER IN (5, 8) AND D.YEAR = 2014
 GROUP BY D.YEAR, S.STORENAME, S.DIMSTOREID, ND.NOV_DEC_2013, JO.JAN_OCT_2013
 ORDER BY S.DIMSTOREID;
 
@@ -39,7 +39,8 @@ ORDER BY S.DIMSTOREID;
 select d.year, d.month_num_in_year, sa.dimstoreid, SUM(sa.saleamount) as sum_amount
 from fact_salesactual sa
 join dim_date d on sa.dimsaledateid = d.date_pkey
-where dimstoreid IN (6) and d.year = 2014
+join dim_store s on sa.dimstoreid = s.dimstoreid
+where s.storenumber = 8 and d.year = 2014
 group by d.year, d.month_num_in_year, sa.dimstoreid
 order by d.year, d.month_num_in_year;
 
