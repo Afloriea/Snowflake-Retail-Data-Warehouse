@@ -132,7 +132,7 @@ select DATE_PKEY,
 				when dayname(V_DATE_1) = 'Sun' then 'Sunday' end as	DAY_NAME,
 			dayname(dateadd(day,row_numbers,DD)) as DAY_ABBREV,
 			case
-				when dayname(V_DATE_1) = 'Sun' and dayname(V_DATE_1) = 'Sat' then
+				when dayname(V_DATE_1) in ('Sun', 'Sat') then
                  'Not-Weekday'
 				else 'Weekday' end as WEEKDAY_IND,
 			 case
