@@ -16,7 +16,9 @@ An end-to-end BI build for a multi-channel retailer. Fifteen raw CSV extracts ar
 | **Outputs** | 4 analysis views, one interactive dashboard, a bonus allocation and a store recommendation |
 | **Context** | Built as a course project, then organised into ordered, reviewable scripts |
 
-![Store 5 & 8 dashboard](docs/dashboard.png)
+[![Store 5 & 8 dashboard](docs/dashboard.png)](https://public.tableau.com/app/profile/ching.ping.chan/viz/9_13AssignmentVisualization_17488860056310/Dashboard1)
+
+**[▶ Open the interactive dashboard on Tableau Public](https://public.tableau.com/app/profile/ching.ping.chan/viz/9_13AssignmentVisualization_17488860056310/Dashboard1)**
 
 ### Key findings
 
@@ -42,6 +44,11 @@ flowchart LR
 ```
 
 ## ⭐ Star schema
+
+![Star schema ERD](docs/erd.png)
+
+<details>
+<summary>Same model as a Mermaid diagram, with fact table grains</summary>
 
 ```mermaid
 erDiagram
@@ -77,6 +84,8 @@ erDiagram
         int ProductTargetSalesQuantity "annual, per product"
     }
 ```
+
+</details>
 
 ### Design decisions
 
@@ -144,7 +153,8 @@ sql/
 └── checks/
     └── staging_smoke_tests.sql
 docs/
-└── dashboard.png
+├── dashboard.png
+└── erd.png
 ```
 
 ## ▶️ How to run it
