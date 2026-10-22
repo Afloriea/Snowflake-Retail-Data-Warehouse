@@ -16,7 +16,7 @@ An end-to-end BI build for a multi-channel retailer. Fifteen raw CSV extracts ar
 | **Outputs** | 4 analysis views, one interactive dashboard, a bonus allocation and a store recommendation |
 | **Context** | Built as a course project, then organised into ordered, reviewable scripts |
 
-[![Store 5 & 8 dashboard](docs/dashboard.png)](https://public.tableau.com/app/profile/ching.ping.chan/viz/9_13AssignmentVisualization_17488860056310/Dashboard1)
+![Store 5 & 8 dashboard](docs/dashboard.png)
 
 **[▶ Open the interactive dashboard on Tableau Public](https://public.tableau.com/app/profile/ching.ping.chan/viz/9_13AssignmentVisualization_17488860056310/Dashboard1)**
 
