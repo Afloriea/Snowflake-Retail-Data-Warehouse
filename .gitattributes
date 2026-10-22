@@ -1,0 +1,3 @@
+# GitHub treats SQL as a data language and leaves it out of the language bar.
+# Count the Snowflake scripts as SQL so the repo shows what it's written in.
+*.sql linguist-language=SQL linguist-detectable=true
