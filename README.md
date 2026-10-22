@@ -14,6 +14,18 @@ An end-to-end BI build for a multi-channel retailer. Fifteen raw CSV extracts ar
 | **Model** | 7 dimensions + 3 fact tables at three different grains |
 | **Layers** | Azure Blob → staging → star schema → secure views → Tableau |
 | **Outputs** | 4 analysis views, one interactive dashboard, a bonus allocation and a store recommendation |
+| **Context** | Built as a course project, then organised into ordered, reviewable scripts |
+
+![Store 5 & 8 dashboard](docs/dashboard.png)
+
+### Key findings
+
+- **Keep both stores open.** Stores 5 and 8 both grew in 2014, and a normal holiday season closes their remaining gap to target.
+- **Bonus split:** store 5 earns $162,741 and store 8 earns $91,083 of the Men's and Women's Casual bonus pools.
+- **Weekly pattern:** sales peak Friday–Saturday and drop by about half on Monday.
+- **Expansion:** stores alone in their state average ≈ $120M versus ≈ $85M in two-store states, so new states come before a second store.
+
+Details and method for each question are in [Business questions and findings](#-business-questions-and-findings).
 
 ---
 
@@ -79,8 +91,6 @@ erDiagram
 
 ## 📊 Business questions and findings
 
-![Store 5 & 8 dashboard](docs/dashboard.png)
-
 *Values marked ≈ are read off the dashboard; exact figures come from the views in `sql/06_analysis_views.sql`.*
 
 ### 1. How are stores 5 and 8 doing, and will they hit their 2014 targets?
@@ -95,6 +105,15 @@ erDiagram
 `MENS_WOMENS_CASUAL_BONUS` gives each store a share of the pool ($500K in 2013, $400K in 2014) equal to its share of Men's and Women's Casual sales that year, using window functions over the yearly total.
 
 - Across both years, **store 5 earns $162,741 and store 8 earns $91,083**. The rest of the pool goes to the other stores in proportion to their sales.
+
+```sql
+-- From MENS_WOMENS_CASUAL_BONUS: each store's share of the year's sales, applied to that year's pool
+SUM(SA.SALEAMOUNT) * 1.0 / SUM(SUM(SA.SALEAMOUNT)) OVER (PARTITION BY D.YEAR) AS CONTRIBUTION_PCT,
+CASE
+  WHEN D.YEAR = 2013 THEN SUM(SA.SALEAMOUNT) * 1.0 / SUM(SUM(SA.SALEAMOUNT)) OVER (PARTITION BY D.YEAR) * 500000
+  WHEN D.YEAR = 2014 THEN SUM(SA.SALEAMOUNT) * 1.0 / SUM(SUM(SA.SALEAMOUNT)) OVER (PARTITION BY D.YEAR) * 400000
+END AS BONUS_AMOUNT
+```
 
 ### 3. What do sales look like by day of the week?
 `STORE_5_8_WEEK_SALES` aggregates sales and units by weekday, store and product.
@@ -139,7 +158,7 @@ Snowflake is a cloud service, so there is nothing to install locally.
 5. **Expose it.** Run `05_secure_views.sql` and `06_analysis_views.sql`.
 6. **Connect Tableau.** Use the Snowflake connector in Tableau and select the `V_*` and analysis views, not the base tables.
 
-## 🧭 Known limitations
+## 🧭 Known limitations and next steps
 
 - Annual targets are stored on every day of the target year, so views read them back with `AVG` instead of `SUM`. Allocating the target per day, or keying it to a year-level date, would make it safe to aggregate.
 - Store names aren't in the source and are generated as `Store Number N`.
